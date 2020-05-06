@@ -102,7 +102,7 @@ if (5 < 10) {
 		{token.INT, "10"},
 		{token.SEMICOLON, ";"},
 		{token.INT, "10"},
-		{token.NOT_EQ, "!="},
+		{token.NOTEQ, "!="},
 		{token.INT, "9"},
 		{token.SEMICOLON, ";"},
 	}

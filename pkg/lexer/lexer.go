@@ -77,7 +77,7 @@ func (l *Lexer) NextToken() token.Token {
 			l.readChar()
 			literal := string(ch) + string(l.ch)
 			tok = token.Token{
-				Type:    token.NOT_EQ,
+				Type:    token.NOTEQ,
 				Literal: literal,
 			}
 		} else {
@@ -139,9 +139,9 @@ func (l *Lexer) skipWhitespace() {
 func (l *Lexer) peekChar() byte {
 	if l.readPosition >= len(l.input) {
 		return 0
-	} else {
-		return l.input[l.readPosition]
 	}
+
+	return l.input[l.readPosition]
 }
 
 func isDigit(ch byte) bool {

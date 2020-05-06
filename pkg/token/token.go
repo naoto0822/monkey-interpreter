@@ -24,7 +24,7 @@ const (
 	MINUS = "-"
 	// BANG is !
 	BANG = "!"
-	// ASTERSIK is *
+	// ASTERISK is *
 	ASTERISK = "*"
 	// SLASH is /
 	SLASH = "/"
@@ -34,8 +34,8 @@ const (
 	GT = ">"
 	// EQ is ==
 	EQ = "=="
-	// NOT_EQ is !=
-	NOT_EQ = "!="
+	// NOTEQ is !=
+	NOTEQ = "!="
 
 	// Delimiter
 

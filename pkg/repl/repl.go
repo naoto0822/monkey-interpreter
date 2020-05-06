@@ -9,8 +9,10 @@ import (
 	"github.com/naoto0822/monkey-interpreter/pkg/token"
 )
 
+// PROMPT is >>
 const PROMPT = ">>"
 
+// Start is starting repl
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
