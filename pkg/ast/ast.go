@@ -61,7 +61,22 @@ type Identifier struct {
 
 func (i *Identifier) expressionNode() {}
 
-// TokenLiteral implements Node
+// TokenLiteral implements Expression
 func (i *Identifier) TokenLiteral() string {
 	return i.Token.Literal
+}
+
+var _ Statement = (*ReturnStatement)(nil)
+
+// ReturnStatement ex return expression;
+type ReturnStatement struct {
+	Token       token.Token
+	ReturnValue Expression
+}
+
+func (s *ReturnStatement) statementNode() {}
+
+// TokenLiteral implemets Statement
+func (s *ReturnStatement) TokenLiteral() string {
+	return s.Token.Literal
 }
