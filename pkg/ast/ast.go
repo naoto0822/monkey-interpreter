@@ -156,6 +156,8 @@ func (s *ExpressionStatement) String() string {
 	return ""
 }
 
+var _ Expression = (*IntegerLiteral)(nil)
+
 // IntegerLiteral is ex 5
 type IntegerLiteral struct {
 	Token token.Token
@@ -173,6 +175,8 @@ func (i *IntegerLiteral) TokenLiteral() string {
 func (i *IntegerLiteral) String() string {
 	return i.Token.Literal
 }
+
+var _ Expression = (*PrefixExpression)(nil)
 
 // PrefixExpression is <prefix operator><exp>;
 type PrefixExpression struct {
@@ -200,6 +204,8 @@ func (p *PrefixExpression) String() string {
 	return out.String()
 }
 
+var _ (Expression) = (*InfixExpression)(nil)
+
 // InfixExpression is <exp><operator><exp>;
 type InfixExpression struct {
 	Token    token.Token
@@ -226,4 +232,24 @@ func (i *InfixExpression) String() string {
 	out.WriteString(")")
 
 	return out.String()
+}
+
+var _ Expression = (*Boolean)(nil)
+
+// Boolean is true or false
+type Boolean struct {
+	Token token.Token
+	Value bool
+}
+
+func (b *Boolean) expressionNode() {}
+
+// TokenLiteral implements Expression
+func (b *Boolean) TokenLiteral() string {
+	return b.Token.Literal
+}
+
+// String implements Expression
+func (b *Boolean) String() string {
+	return b.Token.Literal
 }
