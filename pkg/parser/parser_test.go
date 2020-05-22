@@ -331,3 +331,49 @@ func TestBooleanExpression(t *testing.T) {
 		}
 	}
 }
+
+func TestIfExpression(t *testing.T) {
+	input := `if (x < y) { x }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Errorf("program.Statements does not contain 1. got=%d",
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("program.Statements is not ast.ExpressionStatement")
+	}
+
+	ifExp, ok := stmt.Expression.(*ast.IfExpression)
+	if !ok {
+		t.Errorf("stmt.Expression is not ast.IfExpression")
+	}
+
+	if !testInfixExpression(t, ifExp.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(ifExp.Consequence.Statements) != 1 {
+		t.Errorf("ifExp.Consequence.Statement does not contain. got=%d",
+			len(ifExp.Consequence.Statements))
+	}
+
+	blockStmt, ok := ifExp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("ifExp.Consequence.Statements is not ast.ExpressionStatement")
+	}
+
+	if !testIdentifier(t, blockStmt.Expression, "x") {
+		return
+	}
+
+	if ifExp.Alternative != nil {
+		t.Errorf("ifExp.Alternative was not nil. got=%+v", ifExp.Alternative)
+	}
+}
