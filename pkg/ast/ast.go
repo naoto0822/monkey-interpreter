@@ -289,7 +289,7 @@ func (i *IfExpression) String() string {
 	return out.String()
 }
 
-var _ (Statement) = (*BlockStatement)(nil)
+var _ Statement = (*BlockStatement)(nil)
 
 // BlockStatement is block { }
 type BlockStatement struct {
@@ -314,6 +314,8 @@ func (b *BlockStatement) String() string {
 
 	return out.String()
 }
+
+var _ Expression = (*FunctionLiteral)(nil)
 
 // FunctionLiteral is fn(x, y){ return x; }
 type FunctionLiteral struct {
@@ -348,6 +350,37 @@ func (f *FunctionLiteral) String() string {
 
 	out.WriteString(") ")
 	out.WriteString(f.Body.String())
+
+	return out.String()
+}
+
+// CallExpression is add(2, 3)
+type CallExpression struct {
+	Token     token.Token
+	Function  Expression
+	Arguments []Expression
+}
+
+func (c *CallExpression) expressionNode() {}
+
+// TokenLiteral implements Expression
+func (c *CallExpression) TokenLiteral() string {
+	return c.Token.Literal
+}
+
+// String implements Expression
+func (c *CallExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(c.Function.String())
+	out.WriteString("(")
+
+	args := []string{}
+	for _, a := range c.Arguments {
+		args = append(args, a.String())
+	}
+	out.WriteString(strings.Join(args, ", "))
+	out.WriteString(")")
 
 	return out.String()
 }

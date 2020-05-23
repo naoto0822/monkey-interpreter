@@ -286,6 +286,14 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"!(true == true)",
 			"(!(true == true))",
 		},
+		{
+			"a + add(b * c) + d",
+			"((a + add((b * c))) + d)",
+		},
+		{
+			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+		},
 	}
 
 	for _, tt := range tests {
@@ -470,5 +478,49 @@ func TestParseFunctionParameters(t *testing.T) {
 		for i, ev := range tt.expectedParams {
 			testIdentifier(t, fnExp.Parameters[i], ev)
 		}
+	}
+}
+
+func TestParseCallExpression(t *testing.T) {
+	input := `add(1, 2 * 3, 4 + 5)`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Errorf("program.Statements does not contain 1. got=%d",
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("program.Statement is not ast.ExpressionStatement")
+	}
+
+	call, ok := stmt.Expression.(*ast.CallExpression)
+	if !ok {
+		t.Errorf("stmt.Expression is not ast.CallExpression")
+	}
+
+	if !testIdentifier(t, call.Function, "add") {
+		return
+	}
+
+	if len(call.Arguments) != 3 {
+		t.Errorf("call.Arguments does not contain 3. git=%d",
+			len(call.Arguments))
+	}
+
+	if !testLiteralExpression(t, call.Arguments[0], 1) {
+		return
+	}
+
+	if !testInfixExpression(t, call.Arguments[1], 2, "*", 3) {
+		return
+	}
+
+	if !testInfixExpression(t, call.Arguments[2], 4, "+", 5) {
+		return
 	}
 }
