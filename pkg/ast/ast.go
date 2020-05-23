@@ -2,6 +2,7 @@ package ast
 
 import (
 	"bytes"
+	"strings"
 
 	"github.com/naoto0822/monkey-interpreter/pkg/token"
 )
@@ -310,6 +311,43 @@ func (b *BlockStatement) String() string {
 	for _, s := range b.Statements {
 		out.WriteString(s.String())
 	}
+
+	return out.String()
+}
+
+// FunctionLiteral is fn(x, y){ return x; }
+type FunctionLiteral struct {
+	Token      token.Token
+	Parameters []*Identifier
+	Body       *BlockStatement
+}
+
+func (f *FunctionLiteral) expressionNode() {}
+
+// TokenLiteral implements Expression
+func (f *FunctionLiteral) TokenLiteral() string {
+	return f.Token.Literal
+}
+
+// String implements Expression
+func (f *FunctionLiteral) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(f.TokenLiteral())
+	out.WriteString("(")
+
+	if len(f.Parameters) > 0 {
+		params := []string{}
+
+		for _, p := range f.Parameters {
+			params = append(params, p.String())
+		}
+
+		out.WriteString(strings.Join(params, ", "))
+	}
+
+	out.WriteString(") ")
+	out.WriteString(f.Body.String())
 
 	return out.String()
 }

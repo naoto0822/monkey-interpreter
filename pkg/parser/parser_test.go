@@ -377,3 +377,98 @@ func TestIfExpression(t *testing.T) {
 		t.Errorf("ifExp.Alternative was not nil. got=%+v", ifExp.Alternative)
 	}
 }
+
+func TestFuntionLiteral(t *testing.T) {
+	input := `fn(x, y) { x + y; }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Errorf("program.Statements does not contain 1. got=%d",
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+
+	fnExp, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Errorf("stmt.Expression is not ast.FunctionLiteral. got=%T",
+			stmt.Expression)
+	}
+
+	if len(fnExp.Parameters) != 2 {
+		t.Errorf("fnExp.Parameters does not contain 2. got=%d", len(fnExp.Parameters))
+	}
+
+	if !testIdentifier(t, fnExp.Parameters[0], "x") {
+		return
+	}
+
+	if !testIdentifier(t, fnExp.Parameters[1], "y") {
+		return
+	}
+
+	if len(fnExp.Body.Statements) != 1 {
+		t.Errorf("fnExp.Body.Statements does not contain 1. got=%d",
+			len(fnExp.Body.Statements))
+	}
+
+	bStmt, ok := fnExp.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("fnExp.Body.Statements is not ast.ExpressionStatement. got=%T",
+			fnExp.Body.Statements[0])
+	}
+
+	if !testInfixExpression(t, bStmt.Expression, "x", "+", "y") {
+		return
+	}
+}
+
+func TestParseFunctionParameters(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{"fn(){};", []string{}},
+		{"fn(x){};", []string{"x"}},
+		{"fn(x, y, z){};", []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParseErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Errorf("program.Statements does not contain 1. got=%d",
+				len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Errorf("program.Statements is not ast.ExpressionStatement")
+		}
+
+		fnExp, ok := stmt.Expression.(*ast.FunctionLiteral)
+		if !ok {
+			t.Errorf("stmt.Expression is not ast.FunctionLiteral")
+		}
+
+		if len(fnExp.Parameters) != len(tt.expectedParams) {
+			t.Errorf("fnExp.Parameters does not contain %d. got=%d",
+				len(tt.expectedParams), len(fnExp.Parameters))
+		}
+
+		for i, ev := range tt.expectedParams {
+			testIdentifier(t, fnExp.Parameters[i], ev)
+		}
+	}
+}
