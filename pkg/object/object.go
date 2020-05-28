@@ -8,9 +8,10 @@ import (
 type Type string
 
 const (
-	INTEGER_OBJ = "INTEGER"
-	BOOLEAN_OBJ = "BOOLEAN"
-	NULL_OBJ    = "NULL"
+	INTEGER_OBJ      = "INTEGER"
+	BOOLEAN_OBJ      = "BOOLEAN"
+	NULL_OBJ         = "NULL"
+	RETURN_VALUE_OBJ = "RETURN_VALUE_OBJ"
 )
 
 // Object monkey value
@@ -66,4 +67,21 @@ func (n *Null) Type() Type {
 // Inspect implements Object
 func (n *Null) Inspect() string {
 	return "null"
+}
+
+var _ Object = (*ReturnValue)(nil)
+
+// ReturnValue is return
+type ReturnValue struct {
+	Value Object
+}
+
+// Type implements Object
+func (r *ReturnValue) Type() Type {
+	return RETURN_VALUE_OBJ
+}
+
+// Inspect implements Object
+func (r *ReturnValue) Inspect() string {
+	return r.Value.Inspect()
 }
