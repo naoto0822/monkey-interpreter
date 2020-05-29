@@ -103,3 +103,27 @@ func (e *Error) Type() Type {
 func (e *Error) Inspect() string {
 	return "ERROR: " + e.Message
 }
+
+// Environment has let identifier
+type Environment struct {
+	store map[string]Object
+}
+
+// NewEnvironment gen Environment
+func NewEnvironment() *Environment {
+	return &Environment{
+		store: make(map[string]Object),
+	}
+}
+
+// Get is get object
+func (e *Environment) Get(name string) (Object, bool) {
+	obj, ok := e.store[name]
+	return obj, ok
+}
+
+// Set is set object w/ name
+func (e *Environment) Set(name string, obj Object) Object {
+	e.store[name] = obj
+	return obj
+}
