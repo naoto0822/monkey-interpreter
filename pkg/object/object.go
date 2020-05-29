@@ -12,6 +12,7 @@ const (
 	BOOLEAN_OBJ      = "BOOLEAN"
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE_OBJ"
+	ERROR_OBJ        = "ERROR"
 )
 
 // Object monkey value
@@ -84,4 +85,21 @@ func (r *ReturnValue) Type() Type {
 // Inspect implements Object
 func (r *ReturnValue) Inspect() string {
 	return r.Value.Inspect()
+}
+
+var _ Object = (*Error)(nil)
+
+// Error is error
+type Error struct {
+	Message string
+}
+
+// Type implements Object
+func (e *Error) Type() Type {
+	return ERROR_OBJ
+}
+
+// Inspect implements Object
+func (e *Error) Inspect() string {
+	return "ERROR: " + e.Message
 }
