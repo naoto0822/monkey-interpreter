@@ -1,7 +1,11 @@
 package object
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
+
+	"github.com/naoto0822/monkey-interpreter/pkg/ast"
 )
 
 // Type is object type
@@ -13,6 +17,7 @@ const (
 	NULL_OBJ         = "NULL"
 	RETURN_VALUE_OBJ = "RETURN_VALUE_OBJ"
 	ERROR_OBJ        = "ERROR"
+	FUNCTION_OBJ     = "FUNCTION"
 )
 
 // Object monkey value
@@ -126,4 +131,37 @@ func (e *Environment) Get(name string) (Object, bool) {
 func (e *Environment) Set(name string, obj Object) Object {
 	e.store[name] = obj
 	return obj
+}
+
+var _ Object = (*Function)(nil)
+
+// Function is fn()
+type Function struct {
+	Parameters []*ast.Identifier
+	Body       *ast.BlockStatement
+	Env        *Environment
+}
+
+// Type implements Object
+func (f *Function) Type() Type {
+	return FUNCTION_OBJ
+}
+
+// Inspect implements Object
+func (f *Function) Inspect() string {
+	var out bytes.Buffer
+
+	params := []string{}
+	for _, p := range f.Parameters {
+		params = append(params, p.String())
+	}
+
+	out.WriteString("fn")
+	out.WriteString("(")
+	out.WriteString(strings.Join(params, ", "))
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
+
+	return out.String()
 }

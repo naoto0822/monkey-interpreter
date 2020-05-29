@@ -200,6 +200,33 @@ func TestLetStatements(t *testing.T) {
 	}
 }
 
+func TestFunctionObject(t *testing.T) {
+	input := `fn(x) { x + 2; };`
+	obj := testEval(input)
+
+	fn, ok := obj.(*object.Function)
+	if !ok {
+		t.Errorf("obj is not object.Function. got=%T", obj)
+		return
+	}
+
+	if len(fn.Parameters) != 1 {
+		t.Errorf("fn.Parameters has wrong parameters. got=%d",
+			len(fn.Parameters))
+		return
+	}
+
+	if fn.Parameters[0].String() != "x" {
+		t.Errorf("p1 is not x. got=%s", fn.Parameters[0].String())
+		return
+	}
+
+	if fn.Body.String() != "(x + 2)" {
+		t.Errorf("fn.Body is not (x + 2). got=%s", fn.Body.String())
+		return
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
