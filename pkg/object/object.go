@@ -112,6 +112,7 @@ func (e *Error) Inspect() string {
 // Environment has let identifier
 type Environment struct {
 	store map[string]Object
+	outer *Environment
 }
 
 // NewEnvironment gen Environment
@@ -121,9 +122,20 @@ func NewEnvironment() *Environment {
 	}
 }
 
+// NewEnclosedEnvironment gen Env w/ outer
+func NewEnclosedEnvironment(outer *Environment) *Environment {
+	env := NewEnvironment()
+	env.outer = outer
+	return env
+}
+
 // Get is get object
 func (e *Environment) Get(name string) (Object, bool) {
 	obj, ok := e.store[name]
+	if !ok && e.outer != nil {
+		obj, ok = e.outer.Get(name)
+	}
+
 	return obj, ok
 }
 
