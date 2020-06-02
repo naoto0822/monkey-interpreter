@@ -18,6 +18,7 @@ const (
 	RETURN_VALUE_OBJ = "RETURN_VALUE_OBJ"
 	ERROR_OBJ        = "ERROR"
 	FUNCTION_OBJ     = "FUNCTION"
+	STRING_OBJ       = "STRING"
 )
 
 // Object monkey value
@@ -176,4 +177,21 @@ func (f *Function) Inspect() string {
 	out.WriteString("\n}")
 
 	return out.String()
+}
+
+var _ Object = (*String)(nil)
+
+// String is string!
+type String struct {
+	Value string
+}
+
+// Type implements Object
+func (s *String) Type() Type {
+	return STRING_OBJ
+}
+
+// Inspect implements Object
+func (s *String) Inspect() string {
+	return s.Value
 }

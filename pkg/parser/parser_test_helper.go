@@ -122,6 +122,28 @@ func testBooleanLiteral(t *testing.T, a ast.Expression, value bool) bool {
 	return true
 }
 
+/*
+func testStringLiteral(t *testing.T, a ast.Expression, value string) bool {
+	s, ok := a.(*ast.StringLiteral)
+	if !ok {
+		t.Errorf("a is not ast.StringLiteral. got=%T", a)
+		return false
+	}
+
+	if s.Value != value {
+		t.Errorf("s.Value is not %s. got=%s", value, s.Value)
+		return false
+	}
+
+	if s.TokenLiteral() != value {
+		t.Errorf("s.TokenLiteral is not %s. got=%s", value, s.TokenLiteral())
+		return false
+	}
+
+	return true
+}
+*/
+
 func testPrefixExpression(
 	t *testing.T, a ast.Expression, operator string, right interface{}) bool {
 

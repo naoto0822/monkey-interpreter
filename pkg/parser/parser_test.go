@@ -529,3 +529,34 @@ func TestParseCallExpression(t *testing.T) {
 		return
 	}
 }
+
+func TestStringLiteralExpression(t *testing.T) {
+	input := `"hello world";`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Errorf("program.Statements does not contain 1. got=%d",
+			len(program.Statements))
+		return
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("program.Statements is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+		return
+	}
+
+	exp, ok := stmt.Expression.(*ast.StringLiteral)
+	if !ok {
+		t.Errorf("stmt.Expression is not StringLiteral. got=%T", stmt.Expression)
+		return
+	}
+
+	if exp.Value != "hello world" {
+		t.Errorf("exp.Value is not %s. got=%s", "hello world", exp.Value)
+	}
+}

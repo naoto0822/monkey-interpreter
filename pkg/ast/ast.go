@@ -384,3 +384,23 @@ func (c *CallExpression) String() string {
 
 	return out.String()
 }
+
+var _ Expression = (*StringLiteral)(nil)
+
+// StringLiteral is "hoge"
+type StringLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (s *StringLiteral) expressionNode() {}
+
+// TokenLiteral implements Expression
+func (s *StringLiteral) TokenLiteral() string {
+	return s.Token.Literal
+}
+
+// String implements Expression
+func (s *StringLiteral) String() string {
+	return s.Token.Literal
+}

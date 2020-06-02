@@ -13,6 +13,8 @@ const (
 	IDENT = "IDENT"
 	// INT is 1, 2,,,
 	INT = "INT"
+	// STRING is string literal
+	STRING = "STRING"
 
 	// Operater
 

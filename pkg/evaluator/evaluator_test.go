@@ -263,6 +263,21 @@ func TestFunctionApplication(t *testing.T) {
 	}
 }
 
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello world";`
+	obj := testEval(input)
+
+	stringObj, ok := obj.(*object.String)
+	if !ok {
+		t.Errorf("obj is not object.String. got=%T", obj)
+		return
+	}
+
+	if stringObj.Value != "Hello world" {
+		t.Errorf("stringObj.Value is not %s. got=%s", "Hello world", stringObj.Value)
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
