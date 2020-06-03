@@ -473,6 +473,46 @@ func TestParseHashLiteral(t *testing.T) {
 	}
 }
 
+func TestHashIndexExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`{"foo": 5}["foo"]`, 5,
+		},
+		{
+			`{"foo": 5}["bar"]`, nil,
+		},
+		{
+			`let key = "foo"; {"foo": 5}[key]`,
+			5,
+		},
+		{
+			`{}["foo"]`,
+			nil,
+		},
+		{
+			`{5: 5}[5]`,
+			5,
+		},
+		{
+			`{true: 5}[true]`,
+			5,
+		},
+	}
+
+	for _, tt := range tests {
+		obj := testEval(tt.input)
+		expectedInt, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, obj, int64(expectedInt))
+		} else {
+			testNullObject(t, obj)
+		}
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
