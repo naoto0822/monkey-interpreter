@@ -53,6 +53,12 @@ const (
 	LBRACE = "{"
 	// RBRACE is }
 	RBRACE = "}"
+	// LBRACKET is [
+	LBRACKET = "["
+	// RBRACKET is ]
+	RBRACKET = "]"
+	// COLON is :
+	COLON = ":"
 
 	// Keyword
 

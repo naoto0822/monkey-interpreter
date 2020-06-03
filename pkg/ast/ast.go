@@ -404,3 +404,93 @@ func (s *StringLiteral) TokenLiteral() string {
 func (s *StringLiteral) String() string {
 	return s.Token.Literal
 }
+
+var _ Expression = (*ArrayLiteral)(nil)
+
+// ArrayLiteral is [a, b,,,]
+type ArrayLiteral struct {
+	Token    token.Token
+	Elements []Expression
+}
+
+func (a *ArrayLiteral) expressionNode() {}
+
+// TokenLiteral implments Expression
+func (a *ArrayLiteral) TokenLiteral() string {
+	return a.Token.Literal
+}
+
+// String implements Expression
+func (a *ArrayLiteral) String() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+	for _, e := range a.Elements {
+		elements = append(elements, e.String())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
+
+var _ Expression = (*IndexExpression)(nil)
+
+// IndexExpression is exp[exp]
+type IndexExpression struct {
+	Token token.Token
+	Left  Expression
+	Index Expression
+}
+
+func (i *IndexExpression) expressionNode() {}
+
+// TokenLiteral implements Expression
+func (i *IndexExpression) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+// String implements Expression
+func (i *IndexExpression) String() string {
+	var out bytes.Buffer
+
+	out.WriteString("(")
+	out.WriteString(i.Left.String())
+	out.WriteString("[")
+	out.WriteString(i.Index.String())
+	out.WriteString("])")
+
+	return out.String()
+}
+
+// HashLiteral is {k:v}
+type HashLiteral struct {
+	Token token.Token
+	Pairs map[Expression]Expression
+}
+
+func (h *HashLiteral) expressionNode() {}
+
+// TokenLiteral implements Expression
+func (h *HashLiteral) TokenLiteral() string {
+	return h.Token.Literal
+}
+
+// String implements Expression
+func (h *HashLiteral) String() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+	for k, v := range h.Pairs {
+		pair := k.String() + ":" + v.String()
+		pairs = append(pairs, pair)
+	}
+
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
+}

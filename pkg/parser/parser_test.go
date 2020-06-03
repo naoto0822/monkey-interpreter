@@ -299,6 +299,10 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
 			"add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
 		},
+		{
+			"a * [1, 2, 3, 4][b * c] * d",
+			"((a * ([1, 2, 3, 4][(b * c)])) * d)",
+		},
 	}
 
 	for _, tt := range tests {
@@ -558,5 +562,128 @@ func TestStringLiteralExpression(t *testing.T) {
 
 	if exp.Value != "hello world" {
 		t.Errorf("exp.Value is not %s. got=%s", "hello world", exp.Value)
+	}
+}
+
+func TestParseArrayLiteral(t *testing.T) {
+	input := `[1, 2 * 2, 3 + 3]`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Errorf("program.Statements does not contain 1. got=%d",
+			len(program.Statements))
+		return
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("program.Statements is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+		return
+	}
+
+	array, ok := stmt.Expression.(*ast.ArrayLiteral)
+	if !ok {
+		t.Errorf("stmt.Expression is not ast.ArrayLiteral. got=%T", stmt.Expression)
+		return
+	}
+
+	if len(array.Elements) != 3 {
+		t.Errorf("array.Elements does not contain 3. got=%d", len(array.Elements))
+		return
+	}
+
+	if !testIntegerLiteral(t, array.Elements[0], 1) {
+		return
+	}
+
+	if !testInfixExpression(t, array.Elements[1], 2, "*", 2) {
+		return
+	}
+
+	if !testInfixExpression(t, array.Elements[2], 3, "+", 3) {
+		return
+	}
+}
+
+func TestParseIndexExpression(t *testing.T) {
+	input := `myArray[1 + 1]`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Errorf("program.Statements does not contain 1. got=%d",
+			len(program.Statements))
+		return
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("program.Statements is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+		return
+	}
+
+	index, ok := stmt.Expression.(*ast.IndexExpression)
+	if !ok {
+		t.Errorf("stmt.Expression is not ast.IndexExpression. got=%T", stmt.Expression)
+		return
+	}
+
+	if !testIdentifier(t, index.Left, "myArray") {
+		return
+	}
+
+	if !testInfixExpression(t, index.Index, 1, "+", 1) {
+		return
+	}
+}
+
+func TestParseHashLiteralStringKey(t *testing.T) {
+	input := `{"one": 1, "two": 2, "three": 3}`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParseErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Errorf("program.Statements does not contain 1. got=%d",
+			len(program.Statements))
+		return
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Errorf("program.Statements is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+		return
+	}
+
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Errorf("stmt.Expression is not ast.HashLiteral. got=%T", stmt.Expression)
+		return
+	}
+
+	expected := map[string]int64{
+		"one":   1,
+		"two":   2,
+		"three": 3,
+	}
+
+	for k, v := range hash.Pairs {
+		literal, ok := k.(*ast.StringLiteral)
+		if !ok {
+			t.Errorf("key is not ast.StringLiteral. got=%T", k)
+			continue
+		}
+
+		expectedValue := expected[literal.Value]
+		testIntegerLiteral(t, v, expectedValue)
 	}
 }

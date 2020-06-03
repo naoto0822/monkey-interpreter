@@ -3,6 +3,7 @@ package object
 import (
 	"bytes"
 	"fmt"
+	"hash/fnv"
 	"strings"
 
 	"github.com/naoto0822/monkey-interpreter/pkg/ast"
@@ -19,12 +20,20 @@ const (
 	ERROR_OBJ        = "ERROR"
 	FUNCTION_OBJ     = "FUNCTION"
 	STRING_OBJ       = "STRING"
+	BUILTIN_OBJ      = "BUILTIN"
+	ARRAY_OBJ        = "ARRAY"
+	HASH_OBJ         = "HASH"
 )
 
 // Object monkey value
 type Object interface {
 	Type() Type
 	Inspect() string
+}
+
+// Hashable hash!
+type Hashable interface {
+	HashKey() HashKey
 }
 
 var _ Object = (*Integer)(nil)
@@ -44,6 +53,14 @@ func (i *Integer) Inspect() string {
 	return fmt.Sprintf("%d", i.Value)
 }
 
+// HashKey gen hash key
+func (i *Integer) HashKey() HashKey {
+	return HashKey{
+		Type:  i.Type(),
+		Value: uint64(i.Value),
+	}
+}
+
 var _ Object = (*Boolean)(nil)
 
 // Boolean is exp bool
@@ -59,6 +76,22 @@ func (b *Boolean) Type() Type {
 // Inspect implements Object
 func (b *Boolean) Inspect() string {
 	return fmt.Sprintf("%t", b.Value)
+}
+
+// HashKey gen hash key
+func (b *Boolean) HashKey() HashKey {
+	var value uint64
+
+	if b.Value {
+		value = 1
+	} else {
+		value = 0
+	}
+
+	return HashKey{
+		Type:  b.Type(),
+		Value: value,
+	}
 }
 
 var _ Object = (*Null)(nil)
@@ -194,4 +227,100 @@ func (s *String) Type() Type {
 // Inspect implements Object
 func (s *String) Inspect() string {
 	return s.Value
+}
+
+// HashKey gen hash key
+func (s *String) HashKey() HashKey {
+	h := fnv.New64a()
+	h.Write([]byte(s.Value))
+
+	return HashKey{
+		Type:  s.Type(),
+		Value: h.Sum64(),
+	}
+}
+
+// BuiltinFunction return Object
+type BuiltinFunction func(args ...Object) Object
+
+var _ Object = (*Builtin)(nil)
+
+// Builtin wrap BuiltinFunction
+type Builtin struct {
+	Fn BuiltinFunction
+}
+
+// Type implements Object
+func (b *Builtin) Type() Type {
+	return BUILTIN_OBJ
+}
+
+// Inspect implements Object
+func (b *Builtin) Inspect() string {
+	return "builtin function"
+}
+
+// Array is [a, b, c]
+type Array struct {
+	Elements []Object
+}
+
+// Type implements Object
+func (a *Array) Type() Type {
+	return ARRAY_OBJ
+}
+
+// Inspect implements Object
+func (a *Array) Inspect() string {
+	var out bytes.Buffer
+
+	elements := []string{}
+	for _, e := range a.Elements {
+		elements = append(elements, e.Inspect())
+	}
+
+	out.WriteString("[")
+	out.WriteString(strings.Join(elements, ", "))
+	out.WriteString("]")
+
+	return out.String()
+}
+
+// HashKey is hash key
+type HashKey struct {
+	Type  Type
+	Value uint64
+}
+
+// HashPair is key and value
+type HashPair struct {
+	Key   Object
+	Value Object
+}
+
+// Hash is {k:v}
+type Hash struct {
+	Pairs map[HashKey]HashPair
+}
+
+// Type implements Object
+func (h *Hash) Type() Type {
+	return HASH_OBJ
+}
+
+// Inspect implements Object
+func (h *Hash) Inspect() string {
+	var out bytes.Buffer
+
+	pairs := []string{}
+	for _, p := range h.Pairs {
+		pair := fmt.Sprintf("%s: %s", p.Key.Inspect(), p.Value.Inspect())
+		pairs = append(pairs, pair)
+	}
+
+	out.WriteString("{")
+	out.WriteString(strings.Join(pairs, ", "))
+	out.WriteString("}")
+
+	return out.String()
 }

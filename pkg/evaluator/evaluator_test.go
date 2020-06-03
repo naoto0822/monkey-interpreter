@@ -297,6 +297,182 @@ func TestStringConcatenation(t *testing.T) {
 	}
 }
 
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			`len("")`, 0,
+		},
+		{
+			`len("four")`, 4,
+		},
+		{
+			`len("hello world")`, 11,
+		},
+		{
+			`len(1)`, "argument to `len` not supported, got INTEGER",
+		},
+		{
+			`len("one", "two")`, "wrong number of arguments. got=2, want=1",
+		},
+		{
+			`len([1, 2])`, 2,
+		},
+	}
+
+	for _, tt := range tests {
+		obj := testEval(tt.input)
+
+		switch expected := tt.expected.(type) {
+		case int:
+			testIntegerObject(t, obj, int64(expected))
+		case string:
+			errObj, ok := obj.(*object.Error)
+			if !ok {
+				t.Errorf("obj is not object.Error. got=%T", obj)
+				continue
+			}
+
+			if errObj.Message != expected {
+				t.Errorf("errObj.Message is not %s. got=%s",
+					expected, errObj.Message)
+			}
+		}
+	}
+}
+
+func TestArrayLiteral(t *testing.T) {
+	input := `[1, 2 * 2, 3 + 3]`
+	obj := testEval(input)
+
+	array, ok := obj.(*object.Array)
+	if !ok {
+		t.Errorf("obj is not object.Array. got=%T", obj)
+		return
+	}
+
+	if len(array.Elements) != 3 {
+		t.Errorf("array.Elements does not contain 3. got=%d", len(array.Elements))
+		return
+	}
+
+	if !testIntegerObject(t, array.Elements[0], 1) {
+		return
+	}
+
+	if !testIntegerObject(t, array.Elements[1], 4) {
+		return
+	}
+
+	if !testIntegerObject(t, array.Elements[2], 6) {
+		return
+	}
+}
+
+func TestArrayIndexExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected interface{}
+	}{
+		{
+			"[1, 2, 3][0]",
+			1,
+		},
+		{
+			"[1, 2, 3][1]",
+			2,
+		},
+		{
+			"[1, 2, 3][2]",
+			3,
+		},
+		{
+			"let i = 0; [1][i];",
+			1,
+		},
+		{
+			"[1, 2, 3][1 + 1]",
+			3,
+		},
+		{
+			"let myArray = [1, 2, 3]; myArray[2];",
+			3,
+		},
+		{
+			"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",
+			6,
+		},
+		{
+			"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i];",
+			2,
+		},
+		{
+			"[1, 2, 3][3]",
+			nil,
+		},
+		{
+			"[1, 2, 3][-1]",
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		obj := testEval(tt.input)
+
+		integer, ok := tt.expected.(int)
+		if ok {
+			testIntegerObject(t, obj, int64(integer))
+		} else {
+			testNullObject(t, obj)
+		}
+	}
+}
+
+func TestParseHashLiteral(t *testing.T) {
+	input := `let two = "two";
+
+{
+ "one": 10 - 9,
+ two: 1 + 1,
+ "thr" + "ee": 6 / 2,
+ 4: 4,
+ true: 5,
+ false: 6
+}`
+	obj := testEval(input)
+	hash, ok := obj.(*object.Hash)
+	if !ok {
+		t.Errorf("obj is not object.Hash. got=%T", obj)
+		return
+	}
+
+	expected := map[object.HashKey]int64{
+		(&object.String{Value: "one"}).HashKey():   1,
+		(&object.String{Value: "two"}).HashKey():   2,
+		(&object.String{Value: "three"}).HashKey(): 3,
+		(&object.Integer{Value: 4}).HashKey():      4,
+		TRUE.HashKey():                             5,
+		FALSE.HashKey():                            6,
+	}
+
+	if len(hash.Pairs) != 6 {
+		t.Errorf("hash.Pairs does not contain 6. got=%d", len(hash.Pairs))
+		return
+	}
+
+	for k, v := range expected {
+		pair, ok := hash.Pairs[k]
+		if !ok {
+			t.Errorf("no pair for given key in Pairs")
+			continue
+		}
+
+		testIntegerObject(t, pair.Value, v)
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
